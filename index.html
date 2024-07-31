@@ -1,0 +1,761 @@
+
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <title>WaveTransfer: A Flexible End-to-end Multi-instrument Timbre Transfer with Diffusion</title>
+      <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+      <script>
+         function play(path) {{
+           var player = document.getElementById('player');
+           player.src = path;
+           player.play();
+         }}
+      </script>
+      <style>
+         .audio-cell {
+         /* Center audio widgets in the table cell. */
+         text-align: center;
+         padding-bottom: 1px;
+         padding-top: 1px;
+         }
+         .audio-cell-padded {
+         text-align: center;
+         padding-bottom: 10px;
+         padding-top: 10px;
+         }
+         .audio-header {
+         /* Don't wrap header text. */
+         white-space: nowrap;
+         /* Some breaking space between headers for readability. */
+         padding-right: 5px;
+         padding-left: 5px;
+         }
+         .reference-cell {
+         /* For uniformity and to wrap long reference text, limit the reference cell's width. */
+         width: 25%;
+         padding-top: 20px;
+         padding-bottom: 20px;
+         }
+         .sample audio {
+         vertical-align: middle;
+         padding-left: 3px;
+         padding-right: 3px;
+         }
+         .round-button {
+         box-sizing: border-box;
+         display:block;
+         width:30px;
+         height:30px;
+         padding-top: 8px;
+         padding-left: 3px;
+         line-height: 6px;
+         border: 1.2px solid #000;
+         border-radius: 50%;
+         color: #000;
+         text-align:center;
+         background-color: rgba(0,0,0,0.00);
+         font-size:6px;
+         box-shadow: 0px 0px 2px rgba(0,0,0,1);
+         transition: all 0.2s ease;
+         }
+         .round-button:hover {
+         background-color: rgba(0,0,0,0.0);
+         box-shadow: 0px 0px 4px rgba(0,0,0,1);
+         }
+         .round-button:active {
+         background-color: rgba(0,0,0,0.01);
+         box-shadow: 0px 0px 1px rgba(0,0,0,1);
+         }
+         table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            text-align: center;
+            padding: 8px;
+        }
+        th {
+            border-bottom: 2px solid black;
+        }
+        tr:last-child td {
+            border-bottom: 2px solid black;
+        }
+        .centered-figure {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 70%;
+        }
+      </style>
+   </head>
+   <body>
+     <div class="main">
+       <article>
+         <header>
+            <h1>WaveTransfer: A Flexible End-to-end Multi-instrument Timbre Transfer with Diffusion</h1>
+         </header>
+      </article>
+      <div>
+        <p>
+		        Teysir Baoueb, Xiaoyu Bie, Hicham Janati, Gaël Richard
+        </p>
+        <p>
+        [<a href="https://github.com/">Code</a> | <a href="https://arxiv.org/">Paper</a>]
+        </p>
+      </div>
+      <div>
+      <p><b>Abstract:</b>
+	      As diffusion-based deep generative models gain prevalence, researchers are actively investigating their potential applications across various domains, including music synthesis and style alteration. Within this work, we are interested in timbre transfer, a process that involves seamlessly altering the instrumental characteristics of musical pieces while preserving essential musical elements. This paper introduces WaveTransfer, an end-to-end diffusion model designed for timbre transfer. We specifically employ the bilateral denoising diffusion model (BDDM) for noise scheduling search. Our model is capable of conducting timbre transfer between audio mixtures as well as individual instruments. Notably, it exhibits versatility in that it accommodates multiple types of timbre transfer between unique instrument pairs in a single model, eliminating the need for separate model training for each pairing. Furthermore, unlike recent works limited to 16 kHz, WaveTransfer can be trained at various sampling rates, including the industry-standard 44.1 kHz, a feature of particular interest to the music community.
+      </p>
+      <h3>
+        Contents
+      </h3>
+      <ul>
+        <li><a href="#subjective_evaluation">A. Subjective Evaluation</a></li>
+        <ul>
+          <li><a href="#test_description">I. Test Description</a></li>
+          <li><a href="#results">II. Results and Analysis</a></li>
+        </ul>
+        <li><a href="#listening_samples">B. Listening Samples</a></li>
+      <ul>
+	<li>
+	  <a href="#tt16">I. Timbre Transfer at 16 kHz</a>
+	      <ul>
+	        <li><a href="#tt16-piano_to_vibraphone">1. Piano &rarr; Vibraphone</a></li>
+	        <li><a href="#tt16-vibraphone_to_piano">2. Vibraphone &rarr; Piano</a></li>
+		<li><a href="#tt16-strings_to_clarinet">3. Strings &rarr; Clarinet</a></li>
+		<li><a href="#tt16-clarinet_to_strings">4. Clarinet &rarr; Strings</a></li>
+		<li><a href="#tt16-ps_to_vc">5. (Piano + strings) &rarr; (Vibraphone + Clarinet)</a></li>
+		<li><a href="#tt16-vc_to_ps">6. (Vibraphone + Clarinet) &rarr; (Piano + strings)</a></li>
+	      </ul>
+	</li>
+	<li>
+	  <a href="#tt44">II. Timbre Transfer at 44.1 kHz</a>
+	      <ul>
+	        <li><a href="#tt44-piano_to_vibraphone">1. Piano &rarr; Vibraphone</a></li>
+	        <li><a href="#tt44-vibraphone_to_piano">2. Vibraphone &rarr; Piano</a></li>
+		<li><a href="#tt44-strings_to_clarinet">3. Strings &rarr; Clarinet</a></li>
+		<li><a href="#tt44-clarinet_to_strings">4. Clarinet &rarr; Strings</a></li>
+		<li><a href="#tt44-ps_to_vc">5. (Piano + strings) &rarr; (Vibraphone + Clarinet)</a></li>
+		<li><a href="#tt44-vc_to_ps">6. (Vibraphone + Clarinet) &rarr; (Piano + strings)</a></li>
+	      </ul>
+	</li>
+      </ul>
+      <li><a href="#references">References</a></li>
+      </ul>
+
+  <h2 id="subjective_evaluation">A. Subjective Evaluation</h2>
+  <h3 id="test_description">I. Test Description</h3>
+  <p>The subjective test, which you can access via <a href="https://wavetransfer.github.io/webMUSHRA"> this link</a> (please note that your responses will not be saved), is designed to evaluate mixture-to-mixture timbre transfer at 16 kHz. It consists of 10 questions, with half focusing on the timbre transfer from piano-strings to vibraphone-clarinet, and the other half on the transfer from vibraphone-clarinet to piano-strings. Each question includes 7 conditions:</p>
+<ul>
+    <li>Reference audio</li>
+    <li>DiffTransfer</li>
+    <li>Music-STAR</li>
+    <li>WT<sup>16</sup><sub>global</sub>with both WG-6 and BDDM-20-generated noise schedules</li>
+    <li>WT<sup>16</sup><sub>mix</sub> with both WG-6 and BDDM-20-generated noise schedules</li>
+</ul>
+<p>Participants rate the conditions on a scale from 0 (worst score) to 100 (best score) based on their perception of the quality of the timbre transfer, without knowing that a hidden reference is included in each set. The order of the questions and the conditions within each question are randomized for each participant.</p>
+
+  <h3 id="results">II. Results and Analysis</h3>
+  <p>Responses were collected from 10 participants, 80% of whom have several years of musical experience. We show hereafter the results computed using the raw scores.</p>
+  <table>
+    <caption><b>Table 1:</b> 95% Confidence Intervals of the Subjective Evaluation for Both Timbre Transfer Types (Raw Scores)</caption>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Mean ± Margin of Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Reference</td>
+        <td>87.57 ± 2.71</td>
+      </tr>
+      <tr>
+        <td>DiffTransfer</td>
+        <td>29.81 ± 3.74</td>
+      </tr>
+      <tr>
+        <td>Music-STAR</td>
+        <td>23.46 ± 3.20</td>
+      </tr>
+      <tr>
+        <td>WT<sub>global</sub><sup>16</sup> with BDDM-20</td>
+        <td>53.72 ± 3.78</td>
+      </tr>
+      <tr>
+        <td>WT<sub>global</sub><sup>16</sup> with WG-6</td>
+        <td>55.12 ± 3.58</td>
+      </tr>
+      <tr>
+        <td>WT<sub>mix</sub><sup>16</sup> with BDDM-20</td>
+        <td><strong>64.84 ± 4.01</strong></td>
+      </tr>
+      <tr>
+        <td>WT<sub>mix</sub><sup>16</sup> with WG-6</td>
+        <td>57.48 ± 3.91</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>The boxplot presented below summarizes five key statistics: the minimum, first quartile (Q1), median, third quartile (Q3), and maximum. The central box represents the interquartile range (IQR), containing the middle 50% of the data, with the bottom of the box marking Q1, the top marking Q3, and the line inside indicating the median. The whiskers extend from the box to the smallest and largest values within 1.5 times the IQR from Q1 and Q3, respectively. Data points outside the whiskers are considered outliers and are typically shown as individual dots.</p>
+  <img src="images/raw.png" alt="" class="centered-figure">
+</div>
+  <p>As can be noticed from the results, WaveTransfer exhibits the highest timbre transfer quality compared to DiffTransfer and Music-STAR.</p>
+  <p>Since some participants did not assign a score of 100 to the condition they considered the best for certain questions, we rescaled the scores. This rescaling ensures that, for each participant and each question, the highest score is normalized to 100.</p>
+  <table>
+    <caption><b>Talbe 2:</b> 95% Confidence Intervals of the Subjective Evaluation for Both Timbre Transfer Types (Rescaled Scores)</caption>
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Mean ± Margin of Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Reference</td>
+        <td>97.94 ± 1.29</td>
+      </tr>
+      <tr>
+        <td>DiffTransfer</td>
+        <td>33.74 ± 4.14</td>
+      </tr>
+      <tr>
+        <td>Music-STAR</td>
+        <td>27.73 ± 3.96</td>
+      </tr>
+      <tr>
+        <td>WT<sub>global</sub><sup>16</sup> with BDDM-20</td>
+        <td>60.06 ± 3.82</td>
+      </tr>
+      <tr>
+        <td>WT<sub>global</sub><sup>16</sup> with WG-6</td>
+        <td>61.93 ± 3.81</td>
+      </tr>
+      <tr>
+        <td>WT<sub>mix</sub><sup>16</sup> with BDDM-20</td>
+        <td><strong>72.12 ± 3.78</strong></td>
+      </tr>
+      <tr>
+        <td>WT<sub>mix</sub><sup>16</sup> with WG-6</td>
+        <td>63.98 ± 3.85</td>
+      </tr>
+    </tbody>
+  </table>
+  <img src="images/rescaled.png" alt="" class="centered-figure">
+
+  <h2 id="listening_samples">B. Listening Samples</h2>
+  <h3 id="tt16">I. Timbre Transfer at 16 kHz</h3>
+  In this section, we consider the timbre transfer task at a sampling rate of 16 kHz. It should be noted that for both DiffTransfer and Music-STAR, six different models are trained for each type of timbre transformation and that their mixtures are obtained from the models designed specifically for mixture-to-mixture timbre transfer, rather than combining individual tracks generated from single instrument models.
+    <h4 id="tt16-piano_to_vibraphone">1. Piano &rarr; Vibraphone</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.2.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.2.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.2.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt16-vibraphone_to_piano">2. Vibraphone &rarr; Piano</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.5.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.5.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.5.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt16-strings_to_clarinet">3. Strings &rarr; Clarinet</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.1.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.1.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.1.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt16-clarinet_to_strings">4. Clarinet &rarr; Strings</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.4.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.4.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/separate_model_individual_tracks/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/separate_model_individual_tracks/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.4.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt16-ps_to_vc">5. (Piano + strings) &rarr; (Vibraphone + Clarinet)</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer </th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+            <th>WT<sup>16</sup><sub>mix</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>mix</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/001.0.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/002.0.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/003.0.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt16-vc_to_ps">6. (Vibraphone + Clarinet) &rarr; (Piano + strings)</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>Music-STAR</th>
+            <th>DiffTransfer </th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>global</sub><br>with BDDM-20</th>
+            <th>WT<sup>16</sup><sub>mix</sub><br>with WG-6</th>
+            <th>WT<sup>16</sup><sub>mix</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/001.3.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/002.3.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/starnet_test_set_16kHz/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/MusicSTAR/mixture_model/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/DiffTransfer/mixture_model/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_WG6/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model1_with_BDDM_20/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_WG6/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/16kHz/Model3_with_BDDM_20/003.3.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+
+  <h3 id="tt44">II. Timbre Transfer at 44.1 kHz</h3>
+    <h4 id="tt44-piano_to_vibraphone">1. Piano &rarr; Vibraphone</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.2.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.2.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.2.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt44-vibraphone_to_piano">2. Vibraphone &rarr; Piano</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.5.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.5.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.2.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.5.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.5.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt44-strings_to_clarinet">3. Strings &rarr; Clarinet</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.1.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.1.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.1.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt44-clarinet_to_strings">4. Clarinet &rarr; Strings</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.4.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.4.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.1.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.4.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.4.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt44-ps_to_vc">5. (Piano + strings) &rarr; (Vibraphone + Clarinet)</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+            <th>WT<sup>44</sup><sub>mix</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>mix</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/001.0.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/002.0.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/003.0.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+    <h4 id="tt44-vc_to_ps">6. (Vibraphone + Clarinet) &rarr; (Piano + strings)</h4>
+      <table class="audio-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Input<br>(ground truth)</th>
+            <th>Target<br>(ground truth)</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>global</sub><br>with BDDM-19</th>
+            <th>WT<sup>44</sup><sub>mix</sub><br>with WG-6</th>
+            <th>WT<sup>44</sup><sub>mix</sub><br>with BDDM-20</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><h7>Pirates of Caribbean</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/001.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/001.3.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>My Heart Will Go On</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/002.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/002.3.wav" type="audio/wav"></audio></td>
+          </tr>
+          <tr>
+            <td><h7>Beethoven's String</h7></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.0.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/starnet_test_set_44.1kHz/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_WG6/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model2_with_BDDM_19/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_WG6/003.3.wav" type="audio/wav"></audio></td>
+            <td><audio controls style="width: 150px; height: 50px"><source src="samples/44.1kHz/Model4_with_BDDM_20/003.3.wav" type="audio/wav"></audio></td>
+          </tr>
+        </tbody>
+      </table>
+
+  <h3 id="references">References</h3>
+         <p>
+		[1] Mahshid Alinoori and Vassilios Tzerpos, “Music-star: a style translation system for audio-based re-instrumentation,” in Proc. ISMIR, 2022.<br/>
+		[2] Luca Comanducci, Fabio Antonacci, and Augusto Sarti, “Timbre transfer using image-to-image denoising diffusion implicit models,” in Proc. ISMIR, 2023.<br/>
+		[3] Mahshid Alinoori and Vassilios Tzerpos, “Starnet,” Available at https://doi.org/10.5281/zenodo. 6917099, August 2022.<br/>
+         </p>
+      </div>
+   </body>
+</html>

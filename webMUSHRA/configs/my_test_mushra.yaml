@@ -1,0 +1,213 @@
+testname: Timbre Transfer Test
+testId: mushra_timbre_transfer
+bufferSize: 2048
+stopOnErrors: true
+showButtonPreviousPage: true
+language: en
+remoteService: service/write.php
+randomizeValue: &randomizeValue true
+showConditionNamesValue: &showConditionNamesValue false
+
+
+
+pages:
+    - type: consent
+      id: consent_page
+      name: Consent
+      mustConsent: true
+      content: <p>You are participating in a listening test. For this, we want to store the answers you give to the following questions.<br>Do you give consent for this?</p>
+    - type: generic
+      id: description
+      name: Test Descriptioin
+      content: <p>This test is designed to assess the timbre transfer capabilities of certain models. In simple terms, timbre transfer involves changing the instrument used for a performance while keeping its content unchanged.<br>For each question, you will begin by listening to an initial excerpt of a mixture, either strings with piano or clarinet with vibraphone. Subsequently, you will evaluate the outputs (conditions) of each timbre transfer model and provide ratings based on their quality. It is important to note that <b>the order of the conditions is randomized for each question</b>.</p> <br/><p>The test consists of 10 questions and is expected to last approximately 15 minutes. Before you start, you can adjust the volume on the next page according to your preference. Upon completion, you will receive a summary of your responses. Please note that there are no correct or incorrect answers, as this is a perceptual test.</p> <br/><p>We sincerely appreciate your time and cooperation.</p>
+    - type: volume
+      id: vol
+      name: Volume settings
+      content: Please adjust the volume to your preference.<br>For optimal testing conditions, ensure you are equipped with <b>high-quality headphones</b> and place yourself in a <b>quiet, noise-free</b> environment.
+      stimulus: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/001.3.wav
+      defaultVolume: 0.5
+    -
+        - random
+        - type: mushra
+          id: pirates
+          name: Pirates of the Caribbean
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (piano + strings) to (vibraphone + clarinet)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/001.3.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/001.0.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/001.0.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/001.0.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/001.0.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/001.0.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/001.0.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/001.0.wav
+        - type: mushra
+          id: my_heart
+          name: My Heart Will Go On
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (piano + strings) to (vibraphone + clarinet)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/002.3.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/002.0.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/002.0.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/002.0.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/002.0.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/002.0.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/002.0.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/002.0.wav
+        - type: mushra
+          id: beethoven_strings
+          name: Beethoven's Strings
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (piano + strings) to (vibraphone + clarinet)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/003.3.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/003.0.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/003.0.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/003.0.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/003.0.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/003.0.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/003.0.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/003.0.wav
+        - type: mushra
+          id: moonlight
+          name: Moonlight Sonata
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (piano + strings) to (vibraphone + clarinet)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/004.3.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/004.0.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/004.0.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/004.0.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/004.0.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/004.0.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/004.0.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/004.0.wav
+        - type: mushra
+          id: fur_elise
+          name: Fur Elise
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (piano + strings) to (vibraphone + clarinet)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/005.3.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/005.0.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/005.0.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/005.0.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/005.0.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/005.0.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/005.0.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/005.0.wav
+        - type: mushra
+          id: brahms
+          name: Brahms's Clarinet
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (vibraphone + clarinet) to (piano + strings)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/006.0.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/006.3.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/006.3.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/006.3.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/006.3.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/006.3.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/006.3.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/006.3.wav
+        - type: mushra
+          id: beethoven_piano
+          name: Beethoven's Piano
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (vibraphone + clarinet) to (piano + strings)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/007.0.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/007.3.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/007.3.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/007.3.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/007.3.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/007.3.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/007.3.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/007.3.wav
+        - type: mushra
+          id: dvorak
+          name: Dvorak's Strings
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (vibraphone + clarinet) to (piano + strings)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/008.0.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/008.3.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/008.3.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/008.3.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/008.3.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/008.3.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/008.3.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/008.3.wav
+        - type: mushra
+          id: rom_jul
+          name: Romeo and Juliet
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (vibraphone + clarinet) to (piano + strings)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/009.0.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/009.3.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/009.3.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/009.3.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/009.3.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/009.3.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/009.3.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/009.3.wav
+        - type: mushra
+          id: nuvole
+          name: Nuvole Bianche
+          content: Please listen to the initial reference audio. Afterward, rate each subsequent audio on a scale from 0 (worst quality) to 100 (best quality) based on your appreciation of the timbre transfer output. The transformation focused on in this question is <b>from (vibraphone + clarinet) to (piano + strings)</b>.
+          reference: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/010.0.wav
+          randomize: *randomizeValue
+          showConditionNames: *showConditionNamesValue
+          stimuli:
+            C1: configs/resources/audio/listening_test_16kHz/starnet_test_set_16kHz/010.3.wav
+            C2: configs/resources/audio/listening_test_16kHz/DiffTransfer/mixture_model/010.3.wav
+            C3: configs/resources/audio/listening_test_16kHz/MusicSTAR/mixture_model/010.3.wav
+            C4: configs/resources/audio/listening_test_16kHz/Model1_with_BDDM_20_only_mixtures(Table2)/010.3.wav
+            C5: configs/resources/audio/listening_test_16kHz/Model1_with_WG6_only_mixtures(Table2)/010.3.wav
+            C6: configs/resources/audio/listening_test_16kHz/Model3_with_BDDM_20(Table2)/010.3.wav
+            C7: configs/resources/audio/listening_test_16kHz/Model3_with_WG6(Table2)/010.3.wav
+
+    - type: finish
+      name: Thank you
+      content: <p>Thank you for taking the time to respond! We would greatly appreciate it if you could spare a moment to complete the following questionnaire, enabling us to gain insight into the musical expertise of participants in the perceptual test.</p>
+      showResults: true
+      writeResults: true
+      questionnaire:
+          - type: text
+            name: instrument
+            label: Instrument(s) Played: (Please indicate 'None' if you do not play any instrument)
+          - type: likert
+            name: difficulty
+            label: How would you rate the difficulty of the test?
+            response:
+             - value: very_easy
+               label: Very easy
+             - value: easy
+               label: Easy
+             - value: moderate
+               label: Moderate
+             - value: difficult
+               label: Difficult
+             - value: very_difficult
+               label: Very difficult
+          - type: number
+            label: Musical Training Years
+            name: musical_training_years
+            min: 0
+            max: 100
+            default: 0
+          - type: text
+            name: rating_comment
+            label: Do you have any additional comments?
